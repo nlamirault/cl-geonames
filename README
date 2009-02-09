@@ -1,0 +1,56 @@
+-----------------
+-- cl-geonames --
+-----------------
+
+A Common Lisp wrapper around the geonames web service.
+
+http://www.geonames.org
+
+and web services available :
+
+http://www.geonames.org/export/web-services.html
+
+
+
+
+Features of Geoname Web Services API supported
+(See http://www.geonames.org/export/ws-overview.html)
+
+[ ] Children
+[ ] Cities
+[x] CountryCode / reverse geocoding
+[x] Country Info (Bounding Box, Capital, Area in square km, Population)
+[x] Country Subdivision / reverse geocoding
+[ ] Earthquakes
+[ ] Find nearby (populate places)
+[x] Find nearby place name / reverse geocoding
+[x] Find nearby postal codes / reverse geocoding
+[ ] Find nearby streets
+[ ] Find nearby weather
+[ ] Find nearby Wikipedia
+[ ] Find nearest Address
+[ ] Find nearest intersection
+[x] Elevation - GTOPO30
+[ ] Hierarchy
+[ ] Neighbourhood
+[ ] Neighbours
+[x] Postal code country info
+[ ] Postal lookup
+[x] Postal Code Search
+[x] Search
+[ ] Siblings
+[x] Elevation - SRTM3
+[x] Timezone
+[ ] Weather
+[ ] Weather ICAO
+[ ] Wikipedia Bounding box
+[ ] Wikipedia search
+
+
+
+Local variables:
+mode: outline
+paragraph-separate: "[  ^L]*$"
+end:
+
+
