@@ -1,0 +1,304 @@
+<page title="cl-geonames : A Common Lisp wrapper for Geonames">
+  <p>
+    cl-geonames is a Common Lisp wrapper around the
+    <a href="http://www.geonames.org"> Geonames </a> web service. 
+    It is developed on <a href="http://www.debian.org"> Debian GNU/Linux </a>, using 
+    <a href="http://www.sbcl.org"> SBCL </a>.
+  </p>
+  <p>
+    cl-geonames was written
+    by <a href="mailto:nlamirault@gmail.com">Nicolas Lamirault</a> and is available under
+    a <a href="http://www.opensource.org/licenses/mit-license.php"> MIT </a> style license.
+  </p>
+  <p>
+    Features of Geoname Web Services API supported :
+    <pre>
+[ ] Children
+[ ] Cities
+[x] CountryCode / reverse geocoding
+[x] Country Info (Bounding Box, Capital, Area in square km, Population)
+[x] Country Subdivision / reverse geocoding
+[ ] Earthquakes
+[ ] Find nearby (populate places)
+[x] Find nearby place name / reverse geocoding
+[x] Find nearby postal codes / reverse geocoding
+[ ] Find nearby streets
+[ ] Find nearby weather
+[ ] Find nearby Wikipedia
+[ ] Find nearest Address
+[ ] Find nearest intersection
+[x] Elevation - GTOPO30
+[ ] Hierarchy
+[ ] Neighbourhood
+[ ] Neighbours
+[x] Postal code country info
+[ ] Postal lookup
+[x] Postal Code Search
+[x] Search
+[ ] Siblings
+[x] Elevation - SRTM3
+[x] Timezone
+[ ] Weather
+[ ] Weather ICAO
+[ ] Wikipedia Bounding box
+[ ] Wikipedia search
+    </pre>
+  </p>
+
+  <h3>Installation using asdf-install</h3>
+  <pre>*> (require 'asdf)
+*> (require 'asdf-install)
+*> (asdf-install:install :cl-geonames)</pre>
+
+  <h3>Installation using Mudballs</h3>
+  <p>Not yet</p>
+
+  <h3>Manual Installation</h3>
+   <p>
+    Download a cl-geonames <a href="#"> tarball</a> or
+    checkout source code from GitHub :
+    <pre> $> git clone git://github.com/nlamirault/cl-geonames.git</pre>
+  </p>
+  <p>
+    cl-geonames needs
+    <a href="http://www.weitz.de/drakma/">Drakma</a>, 
+    <a href="http://common-lisp.net/project/s-xml/">s-xml</a>,
+    <a href="http://common-lisp.net/project/cl-json/">cl-json</a>,
+    and their dependencies.
+  </p>
+  <p>
+    <a href="http://www.cliki.net/asdf">ASDF</a> is used for
+    compilation.  Register the .asd file, e.g. by symlinking it,
+    then compile s-xml using <tt>asdf:operate</tt>.
+  </p>
+  <pre>$ ln -sf `pwd`/cl-geonames.asd /path/to/your/registry/
+*> (asdf:operate 'asdf:load-op :cl-geonames)</pre>
+
+  <h3>Usage</h3>
+  <p>
+    Please refer to the <a href="api/index.html">API documentation</a>.
+There is also a <a href="api/documentation.pdf"> PDF </a> version of the API.
+  </p>
+
+  <h3>Unit tests</h3>
+  <p>The <a href="http://common-lisp.net/project/lift/">Lift</a> framework is used 
+  for the unit tests. See report <a href="test-results/">here</a>.
+  And the <a href="coverage/cover-index.html"> code coverage </a> result 
+  performed by sb-cover</p>
+  <pre>(cl-geonames-test:run-cl-geonames-test)</pre>
+
+  <h3>Support</h3>
+  Mail Nicolas Lamirault for questions, bug reports, ...
+
+  <h3> Exemples </h3>
+  <ul>
+    <li> Get informations about a country </li>
+      <pre>*> (cl-geonames:geo-country-info :country '("FR" "GB" "ES"))         
+(:|geonames|
+ (:|country| (:|countryCode| "ES") (:|countryName| "Spain")
+  (:|isoNumeric| "724") (:|isoAlpha3| "ESP") (:|fipsCode| "SP")
+  (:|continent| "EU") (:|capital| "Madrid") (:|areaInSqKm| "504782.0")
+  (:|population| "40341462") (:|currencyCode| "EUR")
+  (:|languages| "es-ES,ca,an,eu,gl") (:|bBoxWest| "-18.170559")
+  (:|bBoxNorth| "43.772217") (:|bBoxEast| "4.316944")
+  (:|bBoxSouth| "27.637497"))
+ (:|country| (:|countryCode| "FR") (:|countryName| "France")
+  (:|isoNumeric| "250") (:|isoAlpha3| "FRA") (:|fipsCode| "FR")
+  (:|continent| "EU") (:|capital| "Paris") (:|areaInSqKm| "547030.0")
+  (:|population| "60656178") (:|currencyCode| "EUR")
+  (:|languages| "fr-FR,de-FR,br,co,oc") (:|bBoxWest| "-5.134723")
+  (:|bBoxNorth| "51.09111") (:|bBoxEast| "9.562222")
+  (:|bBoxSouth| "41.364166"))
+ (:|country| (:|countryCode| "GB") (:|countryName| "United Kingdom")
+  (:|isoNumeric| "826") (:|isoAlpha3| "GBR") (:|fipsCode| "UK")
+  (:|continent| "EU") (:|capital| "London") (:|areaInSqKm| "244820.0")
+  (:|population| "60441457") (:|currencyCode| "GBP")
+  (:|languages| "en,en-GB,cy-GB,fr-GB,ga-GB,gd,gv,kw")
+  (:|bBoxWest| "-8.621389") (:|bBoxNorth| "60.844444") (:|bBoxEast| "1.749444")
+  (:|bBoxSouth| "49.911659")))
+      </pre>
+
+      <li> Get the iso country code for the given LATITUDE/LONGITUDE </li>
+      <pre>*> (cl-geonames::geo-country-code
+             "44.8391224692125" "-0.585060840409772")
+(:|geonames| (:|country| (:|countryCode| "FR") (:|countryName| "France")))</pre>
+
+      <li> Get the country and the administrative subdivison (state, province,...)
+      for the given LATITUDE/LONGITUDE </li>
+      <pre>*> (cl-geonames::geo-country-subdivision
+             "44.8391224692125" "-0.585060840409772")
+(:|geonames|
+ (:|countrySubdivision| (:|countryCode| "FR") (:|countryName| "France")
+  (:|adminCode1| "97") (:|adminName1| "Aquitaine")))</pre>
+
+      <li> Get the elevation in meters according to srtm3 for the given LATITUDE/LONGITUDE </li>
+      <pre>*> (cl-geonames::geo-elevation-srtm3
+            "44.8391224692125" "-0.585060840409772")
+"21
+      "</pre>
+
+      <li> Get the elevation in meters according to gtopo30 for the given LATITUDE/LONGITUDE </li>
+      <pre>*> (cl-geonames::geo-elevation-gtopo30
+            "44.8391224692125" "-0.585060840409772")
+"10
+"</pre>
+
+      <li> A list of postalcodes and places for the LATITUDE / LONGITUDE query </li>
+      <pre>*> (cl-geonames::geo-find-nearby-place-name "44.8391224692125"
+                                                  "-0.585060840409772"
+                                                  :radius 10)
+(:|geonames|
+ (:|geoname| (:|name| "Bordeaux") (:|lat| "44.8333333") (:|lng| "-0.5666667")
+  (:|geonameId| "3031582") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "P") (:|fcode| "PPLA") (:|distance| "1.58675662707033"))
+ (:|geoname| (:|name| "La Bastide") (:|lat| "44.85") (:|lng| "-0.5666667")
+  (:|geonameId| "3011289") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "P") (:|fcode| "PPLX") (:|distance| "1.8882948750268167"))
+ (:|geoname| (:|name| "Talence") (:|lat| "44.8166667") (:|lng| "-0.6")
+  (:|geonameId| "2973495") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "P") (:|fcode| "PPL") (:|distance| "2.7608199337635466"))
+ (:|geoname| (:|name| "CaudÃ©ran") (:|lat| "44.85") (:|lng| "-0.6166667")
+  (:|geonameId| "3028210") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "P") (:|fcode| "PPL") (:|distance| "2.7697050160977645"))
+ (:|geoname| (:|name| "Saint-Marie") (:|lat| "44.8444444") (:|lng| "-0.55")
+  (:|geonameId| "3225415") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "P") (:|fcode| "PPL") (:|distance| "2.826815782035943"))
+ (:|geoname| (:|name| "Bacalan") (:|lat| "44.8666667") (:|lng| "-0.5666667")
+  (:|geonameId| "3035500") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "P") (:|fcode| "PPLX") (:|distance| "3.3885021713505"))
+ (:|geoname| (:|name| "MÃ©rignac") (:|lat| "44.8333333") (:|lng| "-0.6333333")
+  (:|geonameId| "2994393") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "P") (:|fcode| "PPL") (:|distance| "3.8602007905079048"))
+ (:|geoname| (:|name| "Le Bouscat") (:|lat| "44.8666667") (:|lng| "-0.6166667")
+  (:|geonameId| "3005066") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "P") (:|fcode| "PPL") (:|distance| "3.947957348832917"))
+ (:|geoname| (:|name| "Capeyron") (:|lat| "44.85") (:|lng| "-0.6333333")
+  (:|geonameId| "3028718") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "P") (:|fcode| "PPL") (:|distance| "3.9931728395199757"))
+ (:|geoname| (:|name| "Le Grand-Louis") (:|lat| "44.85") (:|lng| "-0.6333333")
+  (:|geonameId| "3003987") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "P") (:|fcode| "PPL") (:|distance| "3.9931728395199757"))) </pre>
+      
+  <li> A list of postalcodes and places for the POSTAL-CODE query </li>
+  <pre>*> (cl-geonames::geo-find-nearby-postal-code "33000")
+(:|geonames|
+ (:|code| (:|postalcode| "33000") (:|name| "Bordeaux") (:|countryCode| "FR")
+  (:|lat| "44.8391224692125") (:|lng| "-0.585060840409772") (:|adminCode1| "B")
+  (:|adminName1| "Aquitaine") (:|adminCode2| "33") (:|adminName2| "GIRONDE")
+  :|adminCode3| :|adminName3| (:|distance| "0.0"))
+ (:|code| (:|postalcode| "33100") (:|name| "Bordeaux") (:|countryCode| "FR")
+  (:|lat| "44.8333333") (:|lng| "-0.5666667") (:|adminCode1| "B")
+  (:|adminName1| "Aquitaine") (:|adminCode2| "33") (:|adminName2| "GIRONDE")
+  :|adminCode3| :|adminName3| (:|distance| "1.58675662707033"))
+ (:|code| (:|postalcode| "33200") (:|name| "Bordeaux") (:|countryCode| "FR")
+  (:|lat| "44.8333333") (:|lng| "-0.5666667") (:|adminCode1| "B")
+  (:|adminName1| "Aquitaine") (:|adminCode2| "33") (:|adminName2| "GIRONDE")
+  :|adminCode3| :|adminName3| (:|distance| "1.58675662707033"))
+ (:|code| (:|postalcode| "33800") (:|name| "Bordeaux") (:|countryCode| "FR")
+  (:|lat| "44.8276158095215") (:|lng| "-0.558988294008739") (:|adminCode1| "B")
+  (:|adminName1| "Aquitaine") (:|adminCode2| "33") (:|adminName2| "GIRONDE")
+  :|adminCode3| :|adminName3| (:|distance| "2.421455258929154"))
+ (:|code| (:|postalcode| "33400") (:|name| "Talence") (:|countryCode| "FR")
+  (:|lat| "44.8166667") (:|lng| "-0.6") (:|adminCode1| "B")
+  (:|adminName1| "Aquitaine") (:|adminCode2| "33") (:|adminName2| "GIRONDE")
+  (:|adminCode3| "33522") :|adminName3| (:|distance| "2.7608199337635466")))</pre>
+
+  <li> A list of postalcodes and places for the LATITUDE / LONGITUDE query </li>
+  <pre>*> (cl-geonames::geo-find-nearby-postal-code-geocoding 
+             "44.8391224692125" "-0.585060840409772")
+(:|geonames|
+ (:|code| (:|postalcode| "33000") (:|name| "Bordeaux") (:|countryCode| "FR")
+  (:|lat| "44.8391224692125") (:|lng| "-0.585060840409772") (:|adminCode1| "B")
+  (:|adminName1| "Aquitaine") (:|adminCode2| "33") (:|adminName2| "GIRONDE")
+  :|adminCode3| :|adminName3| (:|distance| "0.0"))
+ (:|code| (:|postalcode| "33100") (:|name| "Bordeaux") (:|countryCode| "FR")
+  (:|lat| "44.8333333") (:|lng| "-0.5666667") (:|adminCode1| "B")
+  (:|adminName1| "Aquitaine") (:|adminCode2| "33") (:|adminName2| "GIRONDE")
+  :|adminCode3| :|adminName3| (:|distance| "1.58675662707033"))
+ (:|code| (:|postalcode| "33200") (:|name| "Bordeaux") (:|countryCode| "FR")
+  (:|lat| "44.8333333") (:|lng| "-0.5666667") (:|adminCode1| "B")
+  (:|adminName1| "Aquitaine") (:|adminCode2| "33") (:|adminName2| "GIRONDE")
+  :|adminCode3| :|adminName3| (:|distance| "1.58675662707033"))
+ (:|code| (:|postalcode| "33800") (:|name| "Bordeaux") (:|countryCode| "FR")
+  (:|lat| "44.8276158095215") (:|lng| "-0.558988294008739") (:|adminCode1| "B")
+  (:|adminName1| "Aquitaine") (:|adminCode2| "33") (:|adminName2| "GIRONDE")
+  :|adminCode3| :|adminName3| (:|distance| "2.421455258929154"))
+ (:|code| (:|postalcode| "33400") (:|name| "Talence") (:|countryCode| "FR")
+  (:|lat| "44.8166667") (:|lng| "-0.6") (:|adminCode1| "B")
+  (:|adminName1| "Aquitaine") (:|adminCode2| "33") (:|adminName2| "GIRONDE")
+  (:|adminCode3| "33522") :|adminName3| (:|distance| "2.7608199337635466")))</pre>
+
+  <li> A list of places for the given postalcode </li>
+  <pre>*> (cl-geonames::geo-placename-lookup "33560" :country '("FR"))
+((:POSTALCODES
+  ((:POSTALCODE . "33560") (:COUNTRY-CODE . "FR")
+   (:PLACE-NAME . "Carbon Blanc"))
+  ((:POSTALCODE . "33560") (:COUNTRY-CODE . "FR")
+   (:PLACE-NAME . "Ste Eulalie"))))</pre>
+
+   <li> Countries for which postal code geocoding is available </li>
+   <pre>*> (cl-geonames::geo-postal-code-country-info)
+(:|geonames|
+ (:|country| (:|countryCode| "AS") (:|countryName| "American Samoa")
+  (:|numPostalCodes| "1") (:|minPostalCode| "96799")
+  (:|maxPostalCode| "96799"))
+ (:|country| (:|countryCode| "AT") (:|countryName| "Austria")
+  (:|numPostalCodes| "46375") (:|minPostalCode| "1010")
+  (:|maxPostalCode| "9991"))
+ (:|country| (:|countryCode| "AU") (:|countryName| "Australia")
+  (:|numPostalCodes| "10161") (:|minPostalCode| "0200")
+  (:|maxPostalCode| "9726"))
+
+[...]</pre>
+
+
+    <li> A list of postal codes and places for the POSTAL-CODE / PLACE-NAME query </li>
+    <pre>*> (cl-geonames::geo-postal-code-search "33560" "" :country '("FR"))
+(:|geonames| (:|totalResultsCount| "2")
+ (:|code| (:|postalcode| "33560") (:|name| "Carbon Blanc")
+  (:|countryCode| "FR") (:|lat| "44.8833333") (:|lng| "-0.5")
+  (:|adminCode1| "B") (:|adminName1| "Aquitaine") (:|adminCode2| "33")
+  (:|adminName2| "GIRONDE") :|adminCode3| :|adminName3|)
+ (:|code| (:|postalcode| "33560") (:|name| "Ste Eulalie") (:|countryCode| "FR")
+  (:|lat| "44.8833333") (:|lng| "-0.5") (:|adminCode1| "B")
+  (:|adminName1| "Aquitaine") (:|adminCode2| "33") (:|adminName2| "GIRONDE")
+  :|adminCode3| :|adminName3|))</pre>
+
+  <li> Returns the names found for the searchterm </li>
+  <pre>*> (cl-geonames::geo-search "Bordeaux" "Bordeaux" "Bordeaux"
+                                   :country '("FR") :max-rows 5)
+(:|geonames| (:|totalResultsCount| "48")
+ (:|geoname| (:|name| "Bordeaux") (:|lat| "44.8333333") (:|lng| "-0.5666667")
+  (:|geonameId| "3031582") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "P") (:|fcode| "PPLA"))
+ (:|geoname| (:|name| "Bordeaux") (:|lat| "48.6833333") (:|lng| "1.1")
+  (:|geonameId| "3031581") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "P") (:|fcode| "PPL"))
+ (:|geoname| (:|name| "Bordeaux") (:|lat| "44.8333333") (:|lng| "-0.5666667")
+  (:|geonameId| "6455058") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "A") (:|fcode| "ADM4"))
+ (:|geoname| (:|name| "Bordeaux-en-GÃ¢tinais") (:|lat| "48.1")
+  (:|lng| "2.5166667") (:|geonameId| "3031579") (:|countryCode| "FR")
+  (:|countryName| "France") (:|fcl| "P") (:|fcode| "PPL"))
+ (:|geoname| (:|name| "Bordeaux") (:|lat| "49.43759662") (:|lng| "1.096001809")
+  (:|geonameId| "6474214") (:|countryCode| "FR") (:|countryName| "France")
+  (:|fcl| "S") (:|fcode| "HTL")))</pre>
+
+  <li> Get the timezone at the LATITUDE/LONGITUDE </li>
+  <pre>*> (cl-geonames::geo-timezone "44.8391224692125" "-0.585060840409772")
+(:|geonames|
+ (:|timezone| (:|countryCode| "FR") (:|countryName| "France")
+  (:|lat| "44.8391224692125") (:|lng| "-0.585060840409772")
+  (:|timezoneId| "Europe/Paris") (:|dstOffset| "2.0") (:|gmtOffset| "1.0")))</pre>
+
+  </ul>
+
+  <h3>Recent changes</h3>
+  <p><b>2009-xx-xx</b></p>
+  <p><b>2008-11-28</b></p>
+  <ul>
+    <li>
+      Project refactoring.
+    </li>
+  </ul>
+</page>
