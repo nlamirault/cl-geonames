@@ -41,7 +41,19 @@
                  body-stream)
                 (t (error 'geonames-output-error :output type)))
           (error 'geonames-request-error :code status-code :message body-stream)))))
-      
+
+
+;; Macro for Geonames requests.
+
+(defmacro with-geonames-stream (stream type &body body)
+  "Macro which creates an input stream, a HTTP url, add parameters executing body,
+and performs the HTTP request defined by uri."
+  `(let (uri)
+     (with-output-to-string (,stream)
+       ,@body
+       (setf uri (get-output-stream-string ,stream)))
+    (geo-perform uri :type ,type)))
+
 
 (defun geo-search (query name exact-name &key country codes fclass
                    fcode language (max-rows 100) (start-row 0)
@@ -65,34 +77,37 @@ returned.}
 @return{A list of names}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (format os "~A" *geonames-search*)
-      (format os "q=~A&name=~A&name_equals=~A" query name exact-name)
-      (when max-rows
-        (if (<= max-rows 1000)
-            (format os "&maxRows=~A" max-rows)
-            (error 'geonames-query-error
-             :message (format nil "MAX-ROWS must be inferior to 1000 : ~A" max-rows))))
-      (when start-row
-        (format os "&startRow=~A" start-row))
-      (when country
-        (format os "~{&country=~A~}" country))
-      (when codes
-        (loop for code in codes
-           as i = 1 then (1+ i)
-           do (format os "&adminCode~A=~A" i code)))
-      (when fclass
-        (format os "~{&fclass=~A~}" fclass))
-      (when fcode
-        (format os "~{&fcode=~A~}" fcode))
-      (when language
-        (format os "&lang=~A" language))
-      (when style
-        (format os "&style=~A" style))
-      (setf url (get-output-stream-string os)))
-    (geo-perform url :type type)))
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+  (with-geonames-stream os type
+    ;;(format os "~A" *geonames-server*)
+      ;;(format os "~A" *geonames-search*)
+    (format os "~A" +geonames-search+)
+    (format os "q=~A&name=~A&name_equals=~A" query name exact-name)
+    (when max-rows
+      (if (<= max-rows 1000)
+          (format os "&maxRows=~A" max-rows)
+          (error 'geonames-query-error
+                 :message (format nil "MAX-ROWS must be inferior to 1000 : ~A"
+                                  max-rows))))
+    (when start-row
+      (format os "&startRow=~A" start-row))
+    (when country
+      (format os "~{&country=~A~}" country))
+    (when codes
+      (loop for code in codes
+            as i = 1 then (1+ i)
+            do (format os "&adminCode~A=~A" i code)))
+    (when fclass
+      (format os "~{&fclass=~A~}" fclass))
+    (when fcode
+      (format os "~{&fcode=~A~}" fcode))
+    (when language
+      (format os "&lang=~A" language))
+    (when style
+      (format os "&style=~A" style))))
+;;;     (setf url (get-output-stream-string os)))
+;;;     (geo-perform url :type type)))
 
 
 (defun geo-postal-code-search (postal-code place-name &key country (max-rows 100)
@@ -108,25 +123,29 @@ The maximal allowed value is 1000.}
 :medium, :long or :full.}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (format os "~A" *geonames-postal-code-search*)
-      (when postal-code
-        (format os "&postalcode=~A" postal-code))
-      (when place-name
-        (format os "&placename=~A" place-name))
-      (when country
-        (format os "~{&country=~A~}" country))
-      (when max-rows
-        (if (<= max-rows 1000)
-            (format os "&maxRows=~A" max-rows)
-            (error 'geonames-query-error
-             :message (format nil "MAX-ROWS must be inferior to 1000 : ~A" max-rows))))
-      (when style
-        (format os "&stylep=~A" style))
-      (setf url (get-output-stream-string os)))
-    (geo-perform url :type type)))
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+;;;       (format os "~A" *geonames-server*)
+;;;       (format os "~A" *geonames-postal-code-search*)
+  (with-geonames-stream os type
+    (format os "~A" +geonames-postal-code-search+)
+    (when postal-code
+      (format os "&postalcode=~A" postal-code))
+    (when place-name
+      (format os "&placename=~A" place-name))
+    (when country
+      (format os "~{&country=~A~}" country))
+    (when max-rows
+      (if (<= max-rows 1000)
+          (format os "&maxRows=~A" max-rows)
+          (error 'geonames-query-error
+                 :message (format nil "MAX-ROWS must be inferior to 1000 : ~A"
+                                  max-rows))))
+    (when style
+      (format os "&stylep=~A" style))
+;;;     (setf url (get-output-stream-string os)))
+;;;   (geo-perform url :type type)))
+    ))
 
 
 (defun geo-placename-lookup (postal-code &key country (max-rows 20) style)
@@ -139,25 +158,30 @@ service. The maximal allowed value is 1000.}
 :medium, :long or :full.}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (format os "~A" *geonames-placename-lookup*)
-      (format os "postalcode=~A" postal-code)
-      (when country
-        (format os "~{&country=~A~}" country))
-      (when max-rows
-        (if (<= max-rows 1000)
-            (format os "&maxRows=~A" max-rows)
-            (error 'geonames-query-error
-             :message (format nil "MAX-ROWS must be inferior to 1000 : ~A" max-rows))))
-      (when style
-        (format os "&stylep=~A" style))
-      (setf url (get-output-stream-string os)))
-    (geo-perform url :type :json)))
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+;;;       (format os "~A" *geonames-server*)
+;;;       (format os "~A" *geonames-placename-lookup*)
+  (with-geonames-stream os :json
+    (format os "~A" +geonames-placename-lookup+)
+    (format os "postalcode=~A" postal-code)
+    (when country
+      (format os "~{&country=~A~}" country))
+    (when max-rows
+      (if (<= max-rows 1000)
+          (format os "&maxRows=~A" max-rows)
+          (error 'geonames-query-error
+                 :message (format nil "MAX-ROWS must be inferior to 1000 : ~A"
+                                  max-rows))))
+    (when style
+      (format os "&stylep=~A" style))
+;;;     (setf url (get-output-stream-string os)))
+;;;     (geo-perform url :type :json)))
+    ))
 
 
-(defun geo-find-nearby-postal-code (postal-code &key country radius (max-rows 5) (type :xml))
+(defun geo-find-nearby-postal-code (postal-code &key country radius (max-rows 5)
+                                    (type :xml))
   "@short{A list of postalcodes and places for the POSTAL-CODE query.}
 @arg[postal-code]{is the postal code to search}
 @arg[country]{is a list of country code (country code or ISO-3166).}
@@ -167,19 +191,22 @@ service.}
 @arg[type]{is the format type of the returned document.}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (format os "~A" *geonames-find-near-postal-code*)
-      (format os "postalcode=~A" postal-code)
-      (when country
-        (format os "~{&country=~A~}" country))
-      (when radius
-        (format os "&radius=~A" radius))
-      (when max-rows
-        (format os "&maxRows=~A" max-rows))
-      (setf url (get-output-stream-string os)))
-    (geo-perform url :type type)))
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+;;;       (format os "~A" *geonames-server*)
+;;;       (format os "~A" *geonames-find-near-postal-code*)
+  (with-geonames-stream os type
+    (format os "~A" +geonames-find-near-postal-code+)
+    (format os "postalcode=~A" postal-code)
+    (when country
+      (format os "~{&country=~A~}" country))
+    (when radius
+      (format os "&radius=~A" radius))
+    (when max-rows
+      (format os "&maxRows=~A" max-rows))
+;;;     (setf url (get-output-stream-string os)))
+;;;     (geo-perform url :type type)))
+    ))
 
 
 (defun geo-find-nearby-postal-code-geocoding (latitude longitude
@@ -197,33 +224,39 @@ the service.}
 @arg[type]{is the format type of the returned document.}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (format os "~A" *geonames-find-near-postal-code*)
-      (format os "lat=~A&lng=~A" latitude longitude)
-      (when country
-        (format os "~{&country=~A~}" country))
-      (when radius
-        (format os "&radius=~A" radius))
-      (when max-rows
-        (format os "&maxRows=~A" max-rows))
-      (when style
-        (format os "&style=~A" style))
-      (setf url (get-output-stream-string os)))
-    (geo-perform url :type type)))
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+;;;       (format os "~A" *geonames-server*)
+;;;       (format os "~A" *geonames-find-near-postal-code*)
+  (with-geonames-stream os type
+    (format os "~A" +geonames-find-near-postal-code+)
+    (format os "lat=~A&lng=~A" latitude longitude)
+    (when country
+      (format os "~{&country=~A~}" country))
+    (when radius
+      (format os "&radius=~A" radius))
+    (when max-rows
+      (format os "&maxRows=~A" max-rows))
+    (when style
+      (format os "&style=~A" style))
+;;;     (setf url (get-output-stream-string os)))
+;;;     (geo-perform url :type type)))
+    ))
 
 
 (defun geo-postal-code-country-info ()
   "@short{Countries for which postal code geocoding is available.}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (format os "~A" *geonames-postal-code-country*)
-      (setf url (get-output-stream-string os)))
-    (geo-perform url :type :xml)))
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+;;;       (format os "~A" *geonames-server*)
+;;;       (format os "~A" *geonames-postal-code-country*)
+  (with-geonames-stream os :xml
+    (format os "~A" +geonames-postal-code-country+)
+;;;     (setf url (get-output-stream-string os)))
+;;;     (geo-perform url :type :xml)))
+    ))
 
 
 (defun geo-find-nearby-place-name (latitude longitude &key radius (max-rows 10)
@@ -237,19 +270,22 @@ the service.}
 @arg[type]{is the format type of the returned document.}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (format os "~A" *geonames-find-near-place-name*)
-      (format os "lat=~A&lng=~A" latitude longitude)
-      (when radius
-        (format os "&radius=~A" radius))
-      (when max-rows
-        (format os "&maxRows=~A" max-rows))
-      (when style
-        (format os "&style=~A" style))
-      (setf url (get-output-stream-string os)))
-    (geo-perform url :type type)))
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+;;;       (format os "~A" *geonames-server*)
+;;;       (format os "~A" *geonames-find-near-place-name*)
+  (with-geonames-stream os type
+    (format os "~A" +geonames-find-near-place-name+)
+    (format os "lat=~A&lng=~A" latitude longitude)
+    (when radius
+      (format os "&radius=~A" radius))
+    (when max-rows
+      (format os "&maxRows=~A" max-rows))
+    (when style
+      (format os "&style=~A" style))
+;;;     (setf url (get-output-stream-string os)))
+;;;   (geo-perform url :type type)))
+    ))
 
 
 (defun geo-country-info (&key country language)
@@ -260,17 +296,20 @@ Bounding Box, Capital, Area in square km, Population.}
 will be returned.}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (format os "~A" *geonames-country-info*)
-      (when country
-        (format os "~{&country=~A~}" country))
-      (when language
-        (format os "&lang=~A" language))
-      (setf url (get-output-stream-string os)))
-    (geo-perform url :type :xml)))
-  
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+;;;       (format os "~A" *geonames-server*)
+;;;       (format os "~A" *geonames-country-info*)
+  (with-geonames-stream os :xml
+    (format os "~A" +geonames-country-info+)
+    (when country
+      (format os "~{&country=~A~}" country))
+    (when language
+      (format os "&lang=~A" language))
+;;;     (setf url (get-output-stream-string os)))
+;;;     (geo-perform url :type :xml)))
+    ))
+
 
 (defun geo-country-code (latitude longitude &key (style :medium) (type :xml))
   "@short{The iso country code for the given LATITUDE/LONGITUDE.}
@@ -281,15 +320,18 @@ will be returned.}
 @arg[type]{is the format type of the returned document.}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (format os "~A" *geonames-country-code*)
-      (format os "&lat=~A&lng=~A" latitude longitude)
-      (when style
-        (format os "&style=~A" style))
-      (setf url (get-output-stream-string os)))
-    (geo-perform url :type type)))
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+;;;       (format os "~A" *geonames-server*)
+;;;       (format os "~A" *geonames-country-code*)
+  (with-geonames-stream os type
+    (format os "~A" +geonames-country-code+)
+    (format os "&lat=~A&lng=~A" latitude longitude)
+    (when style
+      (format os "&style=~A" style))
+;;;     (setf url (get-output-stream-string os)))
+;;;     (geo-perform url :type type)))
+    ))
 
 
 (defun geo-country-subdivision (latitude longitude &key language)
@@ -301,15 +343,18 @@ for the given LATITUDE/LONGITUDE.}
 name will be returned.}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (format os "~A" *geonames-country-subdivision*)
-      (format os "&lat=~A&lng=~A" latitude longitude)
-      (when language
-        (format os "&lang=~A" language))
-      (setf url (get-output-stream-string os)))
-    (geo-perform url)))
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+;;;       (format os "~A" *geonames-server*)
+;;;       (format os "~A" *geonames-country-subdivision*)
+  (with-geonames-stream os :xml
+    (format os "~A" +geonames-country-subdivision+)
+    (format os "&lat=~A&lng=~A" latitude longitude)
+    (when language
+      (format os "&lang=~A" language))
+;;;     (setf url (get-output-stream-string os)))
+;;;     (geo-perform url)))
+    ))
 
 
 (defun geo-elevation-srtm3 (latitude longitude)
@@ -320,13 +365,16 @@ ocean areas have been masked as 'no data' and have been assigned a value of
 @arg[longitude]{the geographic coordinate.}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (format os "~A" *geonames-elevation-srtm3*)
-      (format os "&lat=~A&lng=~A" latitude longitude)
-      (setf url (get-output-stream-string os)))
-    (geo-perform url :type :plain)))
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+;;;       (format os "~A" *geonames-server*)
+;;;       (format os "~A" *geonames-elevation-srtm3*)
+  (with-geonames-stream os :plain
+    (format os "~A" +geonames-elevation-srtm3+)    
+    (format os "&lat=~A&lng=~A" latitude longitude)
+;;;     (setf url (get-output-stream-string os)))
+;;;     (geo-perform url :type :plain)))
+    ))
 
 
 (defun geo-elevation-gtopo30 (latitude longitude)
@@ -336,13 +384,16 @@ ocean areas have been masked as 'no data' and have been assigned a value of -999
 @arg[longitude]{the geographic coordinate.}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (format os "~A" *geonames-elevation-gtopo30*)
-      (format os "&lat=~A&lng=~A" latitude longitude)
-      (setf url (get-output-stream-string os)))
-    (geo-perform url :type :plain)))
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+;;;       (format os "~A" *geonames-server*)
+;;;       (format os "~A" *geonames-elevation-gtopo30*)
+  (with-geonames-stream os :plain
+    (format os "~A" +geonames-elevation-gtopo30+)
+    (format os "&lat=~A&lng=~A" latitude longitude)
+;;;     (setf url (get-output-stream-string os)))
+;;;     (geo-perform url :type :plain)))
+    ))
 
 
 (defun geo-timezone (latitude longitude &key (type :xml))
@@ -353,13 +404,15 @@ and dst offset (1. July)}.
 @arg[type]{is the format type of the returned document.}
 @see-condition{geonames-output-error}
 @see-condition{geonames-request-error}"
-  (let (url)
-    (with-output-to-string (os)
-      (format os "~A" *geonames-server*)
-      (if (equal type :json)
-          (format os "~A" (format nil *geonames-timezone* type))
-          (format os "~A" (format nil *geonames-timezone* "")))
-      (format os "&lat=~A&lng=~A" latitude longitude)
-      (setf url (get-output-stream-string os)))
-    (geo-perform url :type type)))
-
+;;;   (let (url)
+;;;     (with-output-to-string (os)
+;;;       (format os "~A" *geonames-server*)
+;;;       (if (equal type :json)
+;;;           (format os "~A" (format nil *geonames-timezone* type))
+;;;           (format os "~A" (format nil *geonames-timezone* "")))
+;;;       (format os "&lat=~A&lng=~A" latitude longitude)
+;;;       (setf url (get-output-stream-string os)))
+;;;     (geo-perform url :type type)))
+  (with-geonames-stream os type
+    (format os "~A" (format nil +geonames-timezone+ type))
+    (format os "&lat=~A&lng=~A" latitude longitude)))
